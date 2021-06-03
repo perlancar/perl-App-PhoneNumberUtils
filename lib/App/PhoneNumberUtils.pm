@@ -1,6 +1,8 @@
 package App::PhoneNumberUtils;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use strict;
@@ -19,9 +21,22 @@ our %arg0_phnum = (
 $SPEC{phone_number_info} = {
     v => 1.1,
     summary => 'Show information about a phone number',
+    description => <<'_',
+
+This utility uses <pm:Number::Phone> to get information for a phone number. For
+certain countries, the information provided can be pretty detailed including
+coordinate, whether the number is an adult line, and the operator name. For
+other countries, the information provided is more basic including whether a
+number is a mobile number.
+
+_
     args => {
         %arg0_phnum,
     },
+    examples => [
+        {args=>{phnum=>'+442087712924'}},
+        {args=>{phnum=>'+6281812345678'}},
+    ],
 };
 sub phone_number_info {
     require Number::Phone;
@@ -65,9 +80,19 @@ sub phone_number_info {
 $SPEC{normalize_phone_number} = {
     v => 1.1,
     summary => 'Normalize phone number',
+    description => <<'_',
+
+This utility uses <pm:Number::Phone> to format the phone number, which supports
+country-specific formatting rules.
+
+_
     args => {
         %arg0_phnum,
     },
+    examples => [
+        {args=>{phnum=>'+442087712924'}},
+        {args=>{phnum=>'+6281812345678'}},
+    ],
 };
 sub normalize_phone_number {
     require Number::Phone;
@@ -82,6 +107,12 @@ sub normalize_phone_number {
 $SPEC{phone_number_is_valid} = {
     v => 1.1,
     summary => 'Check whether phone number is valid',
+    description => <<'_',
+
+This utility uses <pm:Number::Phone> to determine whether a phone number is
+valid.
+
+_
     args => {
         %arg0_phnum,
         quiet => {
@@ -89,6 +120,12 @@ $SPEC{phone_number_is_valid} = {
             cmdline_aliases => {q=>{}},
         },
     },
+    examples => [
+        {args=>{phnum=>'+442087712924'}},
+        {args=>{phnum=>'+4420877129240'}},
+        {args=>{phnum=>'+6281812345678'}},
+        {args=>{phnum=>'+6281812345'}},
+    ],
 };
 sub phone_number_is_valid {
     require Number::Phone;
