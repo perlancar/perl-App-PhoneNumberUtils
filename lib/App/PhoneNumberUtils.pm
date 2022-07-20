@@ -1,12 +1,12 @@
 package App::PhoneNumberUtils;
 
+use strict;
+use warnings;
+
 # AUTHORITY
 # DATE
 # DIST
 # VERSION
-
-use strict;
-use warnings;
 
 our %SPEC;
 
@@ -85,9 +85,21 @@ $SPEC{normalize_phone_number} = {
 This utility uses <pm:Number::Phone> to format the phone number, which supports
 country-specific formatting rules.
 
+The phone number must be an international phone number (e.g. +6281812345678
+instead of 081812345678). But if you specify the `default_country_code` option,
+you can supply a local phone number (e.g. 081812345678) and it will be formatted
+as international phone number.
+
 _
     args => {
         %arg0_phnum,
+        default_country_code => {
+            schema => 'country::code::alpha2',
+        },
+        strip_whitespace => {
+            schema => 'bool*',
+            cmdline_aliases => {S => {}},
+        },
     },
     examples => [
         {args=>{phnum=>'+442087712924'}},
@@ -95,13 +107,47 @@ _
     ],
 };
 sub normalize_phone_number {
-    require Number::Phone;
-
     my %args = @_;
 
-    my $np = Number::Phone->new($args{phnum})
+    my $mod = "Number::Phone";
+    if ($args{default_country_code}) {
+        return [400, "Bad syntax for country code, please specify 2-letter ISO country code"]
+            unless $args{default_country_code} =~ /\A[A-Za-z]{2}\z/;
+        $mod .= "::StubCountry::" . uc($args{default_country_code});
+    }
+
+    (my $modpm = "$mod.pm") =~ s!::!/!g;
+    require $modpm;
+
+    my $np = $mod->new($args{phnum})
         or return [400, "Invalid phone number"];
-    [200, "OK", $np->format];
+    my $formatted = $np->format;
+
+    if ($args{strip_whitespace}) { $formatted =~ s/\s+//g }
+
+    [200, "OK", $formatted];
+}
+
+$SPEC{normalize_phone_number_idn} = {
+    v => 1.1,
+    summary => 'Normalize phone number (for Indonesian number)',
+    description => <<'_',
+
+This is a shortcut for:
+
+    % normalize-phone-number --default-country-code id
+
+_
+    args => {
+        %arg0_phnum,
+    },
+    examples => [
+        {args=>{phnum=>'+6281812345678'}},
+        {args=>{phnum=>'081812345678'}},
+    ],
+};
+sub normalize_phone_number_idn {
+    normalize_phone_number(@_, default_country_code=>'id');
 }
 
 $SPEC{phone_number_is_valid} = {
