@@ -1,3 +1,9 @@
+0.004   2022-07-20  Released-By: PERLANCAR; Urgency: medium
+
+        - [bugfix] [cli normalize-phone-number-*] Forgot to add other
+          options.
+
+
 0.003   2022-07-20  Released-By: PERLANCAR; Urgency: medium
 
         - [cli normalize-phone-number] Add options --default-country-code,
