@@ -163,11 +163,19 @@ _
     },
     examples => [
         {args=>{phnum=>'+6281812345678'}},
+        {args=>{phnum=>'6281812345678'}},
         {args=>{phnum=>'081812345678'}},
     ],
 };
 sub normalize_phone_number_idn {
-    normalize_phone_number(@_, default_country_code=>'id');
+    my %args = @_;
+
+    # preprocess
+    for (@{ $args{phnums} }) {
+        if (/\A62/) { $_ = "+$_" }
+    }
+
+    normalize_phone_number(%args, default_country_code=>'id');
 }
 
 $SPEC{phone_number_is_valid} = {
