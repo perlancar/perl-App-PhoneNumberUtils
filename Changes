@@ -1,3 +1,13 @@
+0.003   2022-07-20  Released-By: PERLANCAR; Urgency: medium
+
+        - [cli normalize-phone-number] Add options --default-country-code,
+          --strip-whitespace (-S).
+
+        - Add CLI normalize-phone-number-idn
+
+        - Add aliases CLIs format-phone-number{,-idn}.
+
+
 0.002   2021-06-03  Released-By: PERLANCAR; Urgency: low
 
 	- No functional changes.
