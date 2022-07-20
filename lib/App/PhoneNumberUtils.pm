@@ -18,6 +18,15 @@ our %arg0_phnum = (
     },
 );
 
+our %arg0_phnums = (
+    phnums => {
+        schema => ['array*', of=>['str*', match => qr/[0-9]/], min_len=>1],
+        pos => 0,
+        slurpy => 1,
+        cmdline_src => 'stdin_or_args',
+    },
+);
+
 our %argspecopt_strip_whitespace = (
     strip_whitespace => {
         schema => 'bool*',
@@ -51,7 +60,7 @@ sub phone_number_info {
     my %args = @_;
 
     my $np = Number::Phone->new($args{phnum})
-        or return [400, "Invalid phone number"];
+        or return [400, "Invalid phone number '$args{phnum}'"];
     [200, "OK", {
         is_valid => $np->is_valid,
         is_allocated => $np->is_allocated,
@@ -97,17 +106,19 @@ instead of 081812345678). But if you specify the `default_country_code` option,
 you can supply a local phone number (e.g. 081812345678) and it will be formatted
 as international phone number.
 
+This utility can accept multiple numbers from command-line arguments or STDIN.
+
 _
     args => {
-        %arg0_phnum,
+        %arg0_phnums,
         default_country_code => {
             schema => 'country::code::alpha2',
         },
         %argspecopt_strip_whitespace,
     },
     examples => [
-        {args=>{phnum=>'+442087712924'}},
-        {args=>{phnum=>'+6281812345678'}},
+        {args=>{phnums=>['+442087712924']}},
+        {args=>{phnums=>['+6281812345678']}},
     ],
 };
 sub normalize_phone_number {
@@ -123,13 +134,16 @@ sub normalize_phone_number {
     (my $modpm = "$mod.pm") =~ s!::!/!g;
     require $modpm;
 
-    my $np = $mod->new($args{phnum})
-        or return [400, "Invalid phone number"];
-    my $formatted = $np->format;
+    my @rows;
+    for my $num (@{ $args{phnums} }) {
+        my $np = $mod->new($num)
+            or return [400, "Invalid phone number '$num'"];
+        my $formatted = $np->format;
+        if ($args{strip_whitespace}) { $formatted =~ s/\s+//g }
+        push @rows, $formatted;
+    }
 
-    if ($args{strip_whitespace}) { $formatted =~ s/\s+//g }
-
-    [200, "OK", $formatted];
+    [200, "OK", @{$args{phnums}} == 1 ? $rows[0] : \@rows];
 }
 
 $SPEC{normalize_phone_number_idn} = {
@@ -144,7 +158,7 @@ This is a shortcut for:
 _
     args => {
         # all args except default_country_code
-        %arg0_phnum,
+        %arg0_phnums,
         %argspecopt_strip_whitespace,
     },
     examples => [
