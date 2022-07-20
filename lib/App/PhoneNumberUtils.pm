@@ -18,6 +18,13 @@ our %arg0_phnum = (
     },
 );
 
+our %argspecopt_strip_whitespace = (
+    strip_whitespace => {
+        schema => 'bool*',
+        cmdline_aliases => {S => {}},
+    },
+);
+
 $SPEC{phone_number_info} = {
     v => 1.1,
     summary => 'Show information about a phone number',
@@ -96,10 +103,7 @@ _
         default_country_code => {
             schema => 'country::code::alpha2',
         },
-        strip_whitespace => {
-            schema => 'bool*',
-            cmdline_aliases => {S => {}},
-        },
+        %argspecopt_strip_whitespace,
     },
     examples => [
         {args=>{phnum=>'+442087712924'}},
@@ -139,7 +143,9 @@ This is a shortcut for:
 
 _
     args => {
+        # all args except default_country_code
         %arg0_phnum,
+        %argspecopt_strip_whitespace,
     },
     examples => [
         {args=>{phnum=>'+6281812345678'}},
